@@ -54,6 +54,33 @@ pipeline {
                     '''
                 }
             }
+	
         }
+	
+	stage('Deploy') {
+    steps {
+        sh '''
+            set -e
+
+            echo "=== Deploying application ==="
+
+            docker rm -f tp4-container 2>/dev/null || true
+
+            docker run -d \
+                --name tp4-container \
+                --restart unless-stopped \
+                -p 8081:80 \
+                almoudir/tp4:latest
+
+            echo "=== Verifying deployment ==="
+            docker ps --filter "name=tp4-container"
+            curl --fail --retry 5 --retry-delay 2 \
+                http://127.0.0.1:8081/
+
+            echo "=== Deployment successful ==="
+        '''
+    }
+}
+
     }
 }
